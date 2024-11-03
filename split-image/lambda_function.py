@@ -2,9 +2,19 @@ import boto3
 import os
 import subprocess
 from urllib.parse import unquote_plus
+import cv2  # Import OpenCV to read video duration
 
 # Initialize the S3 client
 s3 = boto3.client('s3')
+
+def get_video_duration(video_path):
+    # Use OpenCV to get the duration of the video
+    video = cv2.VideoCapture(video_path)
+    fps = video.get(cv2.CAP_PROP_FPS)
+    frame_count = video.get(cv2.CAP_PROP_FRAME_COUNT)
+    duration = frame_count / fps
+    video.release()
+    return duration
 
 def lambda_handler(event, context):
     # Extract bucket and object key from the event
@@ -22,12 +32,26 @@ def lambda_handler(event, context):
     # Download the video from the input bucket
     s3.download_file(input_bucket, object_key, input_video_path)
 
-    # Use ffmpeg to split the video into frames
-    ffmpeg_command = [
-        '/usr/local/bin/ffmpeg', '-i', input_video_path,
-        '-vf', 'fps=5',  # Set to capture 5 frames per second
-        f"{output_dir}/output-%02d.jpg", '-y'
+    # Get the duration of the video
+    duration = get_video_duration(input_video_path)
+
+    # Set the frame extraction parameters
+    if duration >= 2:
+        ffmpeg_command = [
+            '/usr/local/bin/ffmpeg', '-i', input_video_path,
+            '-vf', 'fps=5',
+            '-vframes', '10',
+            f"{output_dir}/output-%02d.jpg", '-y'
+        ]
+    else:
+        ffmpeg_command = [
+            '/usr/local/bin/ffmpeg', '-i', input_video_path,
+            '-vf', 'fps=10',
+            '-vframes', '10',
+            f"{output_dir}/output-%02d.jpg", '-y'
     ]
+
+
     subprocess.run(ffmpeg_command, check=True)
 
     # Upload each frame to the stage-1 bucket
