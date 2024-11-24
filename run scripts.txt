@@ -1,0 +1,12 @@
+Project 3.1
+
+python3 grader_script_p1.py --access_key [access_key] --secret_key [secret_key] --input_bucket [input-bucket-name] --output_bucket [output-bucket-name] --lambda_name [lambda-func-name]
+
+python3 workload_generator.py --access_key [access_key] --secret_key [secret_key] --input_bucket [input-bucket-name] --output_bucket [output-bucket-name] --testcase_folder dataset/
+
+
+Project 3.2
+
+python3 grader_script_p2_v2.py --access_key [access_key] --secret_key [secret_key] --asu_id 1224979548
+
+python3 workload_generator_2.py --access_key [access_key] --secret_key [secret_key] --asu_id 1224979548 --testcase_folder dataset/
